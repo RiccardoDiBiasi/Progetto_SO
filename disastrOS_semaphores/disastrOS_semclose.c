@@ -7,5 +7,15 @@
 #include "disastrOS_semdescriptor.h"
 
 void internal_semClose(){
-  // do stuff :)
+  
+  int id_sem = running->syscall_args[0];
+
+  SemDescriptor* desc = SemDescriptor_alloc(&running->sem_descriptors, id_sem);
+
+  if(!desc){
+	running->syscall_retvalue = DSOS_ESEMDESCR;
+    return;
+  } 
+
+  
 }

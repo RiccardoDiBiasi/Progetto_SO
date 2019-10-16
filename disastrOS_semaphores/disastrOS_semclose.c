@@ -10,10 +10,10 @@ void internal_semClose(){
   
   int id_sem = running->syscall_args[0];
 
-  SemDescriptor* desc = SemDescriptor_alloc(&running->sem_descriptors, id_sem);
+  SemDescriptor* desc = SemDescriptorList_byFd(&running->sem_descriptors, id_sem);
 
   if(!desc){
-	running->syscall_retvalue = DSOS_ESEMDESCR;
+	running->syscall_retvalue = DSOS_ERR_SEMNOTFD;
     return;
   } 
 

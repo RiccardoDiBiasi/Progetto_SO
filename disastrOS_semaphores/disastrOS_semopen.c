@@ -23,7 +23,7 @@ void internal_semOpen(){
     //Controllo che il semaforo abbia un valore >= 0;
 
     if(val_sem < 0){
-      running->syscall_retvalue = DSOS_SEMWRONGVALUE;
+      running->syscall_retvalue = DSOS_ERR_SEMWRONGVAL;
       //printf("Negative value for the semaphore\n"); //Devo gestire l'errore con una f.ne apposita??
       return;
     }
@@ -35,11 +35,11 @@ void internal_semOpen(){
     if(!sem){
 
       //Se non esiste lo alloco
-      s = Semaphore_alloc(id_sem, val_sem);
+      sem = Semaphore_alloc(id_sem, val_sem);
 
       //Controllo che sia stato allocato
       if(!sem){
-      running->syscall_retvalue = DSOS_SEMNOTALLOC;
+      running->syscall_retvalue = DSOS_ERR_SEMNOTALLOC;
       return;
       }
 
@@ -65,10 +65,19 @@ void internal_semOpen(){
     List_insert(&running->sem_descriptors, running->sem_descriptors.last, (ListItem*) des);
 
     SemDescriptorPtr* des_ptr = SemDescriptorPtr_alloc(des);
+
+
+    //Controllo di avere il puntatore allocato
+    if(!des_ptr){
+      running->syscall_retvalue = DSOS_ERR_SEMNOTDESCPTR;
+      return;
+    }
+
+    //Assegno il puntatore al semaforo e lo aggiungo alla lista
     des->ptr = des_ptr;
     List_insert(&sem->descriptors, sem->descriptors.last, (ListItem*) des_ptr);
 
     running->syscall_retvalue = des->fd;
-    fprintf(stdout, "[GOOD] SEMAPHORE OPENED\n")
+    fprintf(stdout, "[GOOD] SEMAPHORE OPENED\n");
     return;
 }

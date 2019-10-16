@@ -305,6 +305,24 @@ int disastrOS_destroyResource(int resource_id) {
   return disastrOS_syscall(DSOS_CALL_DESTROY_RESOURCE, resource_id);
 }
 
+//Inizializzo le mie funzioni che lavorano sui semafori
+
+int disastrOS_semopen(int id, int value){
+  return disastrOS_syscall(DSOS_CALL_SEMOPEN, id, value);
+}
+
+int disastrOS_semclose(int id){
+  return disastrOS_syscall(DSOS_CALL_SEMCLOSE, id);
+}
+
+int disastrOS_semwait(int id){
+  return disastrOS_syscall(DSOS_CALL_SEMWAIT, id);
+}
+
+int disastrOS_sempost(int id){
+  return disastrOS_syscall(DSOS_CALL_SEMPOST, id);
+}
+
 
 
 void disastrOS_printStatus(){

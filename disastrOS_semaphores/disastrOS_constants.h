@@ -29,6 +29,14 @@
 #define DSOS_ERESOURCECLOSE -12
 #define DSOS_ERESOURCEINUSE -13
 
+//Miei errori per i semafori
+#define DSOS_ERR_SEMNOTFD -14
+#define DSOS_ERR_SEMNOTDESCPTR -15 //Il ptr del descrittore non è stato allocato correttamente
+#define DSOS_ERR_SEMNOTALLOC -16 //Ritorno questo se dopo il controllo il semaforo non è ancora stato allocato
+#define DSOS_ERR_SEMNOTPRESENT -17
+#define DSOS_ERR_SEMWRONGVAL -18 //Il valore del semaforo è minore di 0 e quindi non valido
+#define DSOS_ERR_SEMNOTFREE -19 
+
 // syscall numbers
 #define DSOS_MAX_SYSCALLS 32
 #define DSOS_MAX_SYSCALLS_ARGS 8

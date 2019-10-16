@@ -5,6 +5,7 @@
 #include "disastrOS_syscalls.h"
 #include "disastrOS_semaphore.h"
 #include "disastrOS_semdescriptor.h"
+#include "linked_list.h"
 
 #include "disastrOS_globals.h"
 #include "disastrOS_resource.h"

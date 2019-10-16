@@ -30,7 +30,7 @@
 #define DSOS_ERESOURCEINUSE -13
 
 //Miei errori per i semafori
-#define DSOS_ERR_SEMNOTFD -14
+#define DSOS_ERR_SEMNOTFD -14  //Errore se non trova il file descriptor del semaforo
 #define DSOS_ERR_SEMNOTDESCPTR -15 //Il ptr del descrittore non è stato allocato correttamente
 #define DSOS_ERR_SEMNOTALLOC -16 //Ritorno questo se dopo il controllo il semaforo non è ancora stato allocato
 #define DSOS_ERR_SEMNOTPRESENT -17

@@ -12,10 +12,31 @@ void internal_semClose(){
 
   SemDescriptor* desc = SemDescriptorList_byFd(&running->sem_descriptors, id_sem);
 
+  //Controllo se ho trovato il file descriptor del semaforo
   if(!desc){
 	running->syscall_retvalue = DSOS_ERR_SEMNOTFD;
     return;
-  } 
+  }
 
-  
+  desc = (SemDescriptor*) List_detach(&running->sem_descriptors, (ListItem*)desc); //Faccio la detach del desc
+
+  Semaphore* s = desc->semaphore; //Puntatore al semaforo
+
+  if(!s){
+    running->syscall_retvalue = DSOS_ERR_SEMNOTPRESENT;
+    return;
+  }
+
+  SemDescriptorPtr* desc_ptr = (SemDescriptorPtr*)List_detach(&(s->descriptors), (ListItem*)(desc->ptr));
+  assert(desc_ptr);
+
+  if(s->descriptors.size == 0 && s->waiting_descriptors.size == 0){
+    printf("Rimuovo il semaforo %d dalla lista\n", id_sem);
+    List_detach(&semaphores_list, (ListItem*)s);
+  }
+
+  Semaphore_free(s);
+  SemDescriptor_free(desc);
+  SemDescriptorPtr_free(desc_ptr);
+  running->syscall_retvalue = 0;  //Ritorno 0 in caso di successo
 }

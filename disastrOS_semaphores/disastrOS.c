@@ -7,6 +7,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include "disastrOS.h"
+#include "disastrOS_globals.h"
 #include "disastrOS_syscalls.h"
 #include "disastrOS_timer.h"
 #include "disastrOS_resource.h"
@@ -146,6 +147,8 @@ void disastrOS_start(void (*f)(void*), void* f_args, char* logfile){
   Timer_init();
   Resource_init();
   Descriptor_init();
+  Semaphore_init();
+  SemDescriptor_init();
   init_pcb=0;
 
   // populate the vector of syscalls and number of arguments for each syscall
@@ -184,13 +187,13 @@ void disastrOS_start(void (*f)(void*), void* f_args, char* logfile){
 
   // fill these with the syscall handlers
   syscall_vector[DSOS_CALL_SEMOPEN]      = internal_semOpen;
-  syscall_numarg[DSOS_CALL_SEMOPEN]      = 1;
+  syscall_numarg[DSOS_CALL_SEMOPEN]      = 2;
 
   syscall_vector[DSOS_CALL_SEMCLOSE]      = internal_semClose;
   syscall_numarg[DSOS_CALL_SEMCLOSE]      = 1;
 
   syscall_vector[DSOS_CALL_SEMPOST]      = internal_semPost;
-  syscall_numarg[DSOS_CALL_SEMPOST]      = 2;
+  syscall_numarg[DSOS_CALL_SEMPOST]      = 1;
 
   syscall_vector[DSOS_CALL_SEMWAIT]      = internal_semWait;
   syscall_numarg[DSOS_CALL_SEMWAIT]      = 1;
@@ -307,19 +310,19 @@ int disastrOS_destroyResource(int resource_id) {
 
 //Inizializzo le mie funzioni che lavorano sui semafori
 
-int disastrOS_semopen(int id, int value){
+int disastrOS_openSem(int id, int value){
   return disastrOS_syscall(DSOS_CALL_SEMOPEN, id, value);
 }
 
-int disastrOS_semclose(int id){
+int disastrOS_closeSem(int id){
   return disastrOS_syscall(DSOS_CALL_SEMCLOSE, id);
 }
 
-int disastrOS_semwait(int id){
+int disastrOS_waitSem(int id){
   return disastrOS_syscall(DSOS_CALL_SEMWAIT, id);
 }
 
-int disastrOS_sempost(int id){
+int disastrOS_postSem(int id){
   return disastrOS_syscall(DSOS_CALL_SEMPOST, id);
 }
 

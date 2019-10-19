@@ -40,7 +40,7 @@ int disastrOS_destroyResource(int resource_id);
 void disastrOS_printStatus();
 
 //Aggiungo le definizioni delle mie funzioni che lavorano sui semafori
-int disastrOS_semopen(int id,int value);
-int disastrOS_semclose(int id);
-int disastrOS_semwait(int id);
-int disastrOS_sempost(int id);
+int disastrOS_openSem(int id,int value);
+int disastrOS_closeSem(int id);
+int disastrOS_waitSem(int id);
+int disastrOS_postSem(int id);

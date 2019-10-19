@@ -8,6 +8,7 @@
 #include "linked_list.h"
 
 #include "disastrOS_globals.h"
+#include "disastrOS_constants.h"
 #include "disastrOS_resource.h"
 
 
@@ -20,14 +21,6 @@ void internal_semOpen(){
     int val_sem = running->syscall_args[1];
 
     printf("Il processo %d ha richiesto l'apertura del semaforo %d\n", running->pid, id_sem);
-
-    //Controllo che il semaforo abbia un valore >= 0;
-
-    if(val_sem < 0){
-      running->syscall_retvalue = DSOS_ERR_SEMWRONGVAL;
-      //printf("Negative value for the semaphore\n"); //Devo gestire l'errore con una f.ne apposita??
-      return;
-    }
 
     //Controllo se non esiste già un semaforo aperto con quell'ID
 
@@ -50,20 +43,33 @@ void internal_semOpen(){
 
     }
 
+    //Controllo che il semaforo abbia un valore >= 0;
+
+    if(val_sem < 0){
+      running->syscall_retvalue = DSOS_ERR_SEMWRONGVAL;
+      fprintf(stdout, "[BAD] NEGATIVE VALUE FOR THE SEMAPHORE\n");; //Devo gestire l'errore con una f.ne apposita??
+      return;
+    }
+    
+
+    int fd = running->last_sem_fd;
 
     //Creo il descrittore
-    SemDescriptor* des = SemDescriptor_alloc(running->last_sem_fd, sem, running);
+    SemDescriptor* des = SemDescriptor_alloc(fd, sem, running);
 
     if(!des){
       //Caso in cui non riesco ad allocare il descrittore
       running->syscall_retvalue = DSOS_ERESOURCENOFD;
       return;
     }
+    
+
+    List_insert(&running->sem_descriptors, running->sem_descriptors.last, (ListItem*) des);
 
     running->last_sem_fd++;
 
 
-    List_insert(&running->sem_descriptors, running->sem_descriptors.last, (ListItem*) des);
+    
 
     SemDescriptorPtr* des_ptr = SemDescriptorPtr_alloc(des);
 

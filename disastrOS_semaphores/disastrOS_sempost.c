@@ -14,6 +14,12 @@ void internal_semPost(){
 
   SemDescriptor* desc = SemDescriptorList_byFd(&running->sem_descriptors, fd_sem);
 
+  if(!desc){
+    
+    running->syscall_retvalue = DSOS_ERR_SEMNOTFD;
+    return;
+  }
+
   Semaphore* sem = desc->semaphore;
 
   if(!sem){
@@ -25,7 +31,7 @@ void internal_semPost(){
 
   if(sem->count <= 0){
 
-    SemDescriptorPtr* desc_ptr = (SemDescriptorPtr*)List_detach(&(sem->waiting_descriptors), (ListItem*) (sem->waiting_descriptors.first));
+    SemDescriptorPtr* desc_ptr = (SemDescriptorPtr*)List_detach(&(sem->waiting_descriptors), (ListItem*) (sem->waiting_descriptors).first);
 
     if(!desc_ptr){
       running->syscall_retvalue = DSOS_ERESOURCEOPEN;
@@ -40,7 +46,7 @@ void internal_semPost(){
 
     List_detach(&waiting_list, (ListItem*)process); // Rimuovo il pcb dalla lista dei waiting per poi aggiungerlo a quella dei ready
 
-    List_insert(&ready_list, &ready_list.last, (ListItem*)process);
+    List_insert(&ready_list, (ListItem*) ready_list.last, (ListItem*)process);
 
     process->status = Ready;
   }

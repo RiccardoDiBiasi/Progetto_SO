@@ -1,86 +1,87 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <poll.h>
-
 #include <stdlib.h>
 
 #include "disastrOS.h"
-#include "disastrOS_semaphore.h"
+#include "disastrOS_globals.h"
 
 
+#define BUFFER_SIZE 5
+#define MAX_TRANSACTION 100
+#define CICLES 5
 
+//Inseriamo variabili per il buffer circolare da inserire nel test produttore/consumatore
+int buf[BUFFER_SIZE];
+int read_index, write_index;
+int sum;
 
-#define BUFFER_SIZE 10
-#define ITER 5
-#define MAX_TRANS 300
-
-
-int buffer[BUFFER_SIZE];
-int write_index, read_index;
-int size;
 
 static inline int performRandomTransaction() {
 
-    int amount = rand() % (2 * MAX_TRANS);
-    if (amount++ >= MAX_TRANS) {
-        return MAX_TRANS - amount;
+    int amount = rand() % (2 * MAX_TRANSACTION);
+    if (amount++ >= MAX_TRANSACTION) {
+        return MAX_TRANSACTION - amount;
     } else {
         return amount;
     }
 }
 
-// ********PRODUCER**********
+void producer(int sem_empty, int sem_filled, int sem_prod){
 
-void producerJob(int empty_sem, int filled_sem, int prod){
-    
-    for(int i = 0; i < ITER; i++){
-      
-      int randomn = performRandomTransaction();
-      disastrOS_waitSem(empty_sem);
+  for(int i = 0; i < CICLES; i++){
 
-      printf("[X] %d CICLO INIZIATO\n", i);
+    int randnum = performRandomTransaction();
+    disastrOS_waitSem(sem_empty);
 
-      disastrOS_waitSem(prod);
-      
-      buffer[write_index] = randomn;
-      write_index = (write_index + 1) % BUFFER_SIZE;
+    printf("------CICLO %d PRODUZIONE INIZIATO-------\n\n", i);
 
-      disastrOS_postSem(prod);
+    disastrOS_waitSem(sem_prod);
 
-      printf("Il producer %d ha prodotto la risorsa %d\n", disastrOS_getpid(), randomn);
+    buf[write_index] = randnum;
+    write_index = (write_index + 1) % BUFFER_SIZE;
 
-      disastrOS_postSem(filled_sem);
+    disastrOS_postSem(sem_prod);
 
-      printf("[X] IL CICLO DEL PRODUTTORE E' FINITO\n");
-    }
+    printf("------PRODOTTO------\n");
+    printf("Il processo produttore %d",disastrOS_getpid());
+    printf(" ha prodotto la risorsa %d\n\n",randnum);
+
+
+    disastrOS_postSem(sem_filled);
+
+    printf("---------CICLO %d PRODUZIONE FINITO-------- \n\n", i);
+  }
+
 }
 
-//***********CONSUMER***********
+void consumer(int sem_empty, int sem_filled, int sem_cons){
 
-void consumerJob(int sem_empty, int filled_sem, int cons){
+  for(int i = 0; i < CICLES; i++){
 
-  for(int i = 0; i < ITER; i++){
+    disastrOS_waitSem(sem_filled);
 
-    disastrOS_waitSem(filled_sem);
+    printf("-------CICLO %d CONSUMATORE INIZIATO--------\n\n", i);
 
-    printf("[X] CONSUMER STARTED\n");
+    disastrOS_waitSem(sem_cons);
 
-    int last = buffer[read_index];
-    size+=last;
-    buffer[read_index] = 0;
+    int last = buf[read_index];
+    sum+=last;
+    buf[read_index] = 0;
     read_index = (read_index + 1) % BUFFER_SIZE;
 
-    disastrOS_postSem(cons);
+    disastrOS_postSem(sem_cons);
 
-    printf("[X] CONSUMED: THE SUM IS %d\n", size);
-    
+    printf("-------CONSUMATO--------\n");
+    printf("La somma è: %d\n\n",sum);
+
     disastrOS_postSem(sem_empty);
 
-    printf("[X] CONSUMER TERMINATO\n");
+    printf("-----------CICLO %d CONSUMATORE TERMINATO---------\n\n", i);
+
   }
+
 }
-
-
 
 // we need this to handle the sleep state
 void sleeperFunction(void* args){
@@ -91,6 +92,8 @@ void sleeperFunction(void* args){
   }
 }
 
+
+
 void childFunction(void* args){
   printf("Hello, I am the child function %d\n",disastrOS_getpid());
   printf("I will iterate a bit, before terminating\n");
@@ -99,10 +102,11 @@ void childFunction(void* args){
   int fd=disastrOS_openResource(disastrOS_getpid(),type,mode);
   printf("fd=%d\n", fd);
 
-  read_index = 0;
-  write_index = 0;
 
-  int sem_filled = disastrOS_openSem(1,0);
+read_index = 0;
+write_index = 0;
+
+int sem_filled = disastrOS_openSem(1,0);
 
   int sem_empty = disastrOS_openSem(2, BUFFER_SIZE);
 
@@ -110,21 +114,20 @@ void childFunction(void* args){
 
   int sem_prod = disastrOS_openSem(4, 1);
 
-  disastrOS_printStatus();
+disastrOS_printStatus();
 
-    if(disastrOS_getpid() > 1){
-      if(disastrOS_getpid() % 2 == 0){
-        printf("[X] AVVIATO IL PROCESSO %d PRODUTTORE\n", disastrOS_getpid());
-        disastrOS_sleep(20);
-        producerJob(sem_empty, sem_filled, sem_prod);
-      }
-      else{
-        printf("[X] AVVIATO IL PROCESSO %d CONSUMATORE\n", sem_cons);
-        disastrOS_sleep(20);
-        consumerJob(sem_empty, sem_filled, sem_cons);
-      }
-    }
+if(disastrOS_getpid() > 1){
+  if(disastrOS_getpid() % 2 == 0){
 
+    printf("-------PROCESSO PRODUTTORE %d AVVIATO-------\n\n", disastrOS_getpid());
+    disastrOS_sleep(15);
+    producer(sem_empty, sem_filled, sem_prod);
+  }
+  else{
+    printf("---------PROCESSO CONSUMATORE %d AVVIATO-------\n\n", disastrOS_getpid());
+    consumer(sem_empty, sem_filled, sem_cons);
+  }
+}
 
   printf("PID: %d, terminating\n", disastrOS_getpid());
 
@@ -133,10 +136,12 @@ void childFunction(void* args){
   disastrOS_closeSem(sem_prod);
   disastrOS_closeSem(sem_cons);
 
-  /*for (int i=0; i<(disastrOS_getpid()+1); ++i){
+/*
+  for (int i=0; i<(disastrOS_getpid()+1); ++i){
     printf("PID: %d, iterate %d\n", disastrOS_getpid(), i);
     disastrOS_sleep((20-disastrOS_getpid())*5);
-  }*/
+  }
+  */
   disastrOS_exit(disastrOS_getpid()+1);
 }
 
@@ -145,11 +150,11 @@ void initFunction(void* args) {
   disastrOS_printStatus();
   printf("hello, I am init and I just started\n");
   disastrOS_spawn(sleeperFunction, 0);
-  
 
-  printf("I feel like to spawn 10 nice threads\n");
+
+  printf("I feel like to spawn 8 nice threads\n");
   int alive_children=0;
-  for (int i=0; i<10; ++i) {
+  for (int i=0; i<8; ++i) {
     //int type=0;
     int mode=DSOS_CREATE;
     printf("mode: %d\n", mode);
@@ -160,10 +165,10 @@ void initFunction(void* args) {
     alive_children++;
   }
 
-  
+  //disastrOS_printStatus();
   int retval;
   int pid;
-  while(alive_children>0 && (pid=disastrOS_wait(0, &retval))>=0){ 
+  while(alive_children>0 && (pid=disastrOS_wait(0, &retval))>=0){
     //disastrOS_printStatus();
     //printf("initFunction, child: %d terminated, retval:%d, alive: %d \n",
 	   //pid, retval, alive_children);

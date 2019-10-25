@@ -15,13 +15,13 @@ Le funzioni definite dallo studente sono 4:
   
 # internal_semPost():
   Questa è la funzione che incrementa il valore del semaforo passato. Dopo un accurato controllo al valore del semaforo, il processo viene eventualmente messo in ready_list.
-  
+
   
 Il progetto va eseguito con il comando ./disastrOS_test da terminale dall'interno della cartella disastrOS_semaphores. E' stato testato con il tool valgrind e l'output dell'analisi di valgrind è il seguente:
 
 
 ==6783== 
-==6783== HEAP SUMMARY:
+==6783== HEAP SUMMARY:\n
 ==6783==     in use at exit: 0 bytes in 0 blocks
 ==6783==   total heap usage: 2 allocs, 2 frees, 2,048 bytes allocated
 ==6783== 

@@ -21,7 +21,7 @@ Il progetto va eseguito con il comando ./disastrOS_test da terminale dall'intern
 
 
 ==6783== 
-==6783== HEAP SUMMARY:\n
+==6783== HEAP SUMMARY:
 ==6783==     in use at exit: 0 bytes in 0 blocks
 ==6783==   total heap usage: 2 allocs, 2 frees, 2,048 bytes allocated
 ==6783== 
